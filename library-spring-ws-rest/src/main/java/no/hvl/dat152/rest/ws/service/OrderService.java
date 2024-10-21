@@ -4,7 +4,7 @@
 package no.hvl.dat152.rest.ws.service;
 
 import java.util.List;
-
+import java.util.Optional;
 import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -39,12 +39,24 @@ public class OrderService {
 		return order;
 	}
 	
-	// TODO public void deleteOrder(Long id)
+	public void deleteOrder(Long id) {
+        orderRepository.deleteById(id);
+	}
 	
-	// TODO public List<Order> findAllOrders()
+	public List<Order> findAllOrders() {
+		return (List<Order>) orderRepository.findAll();
+	}
 	
-	// TODO public List<Order> findByExpiryDate(LocalDate expiry, Pageable page)
+	public List<Order> findByExpiryDate(LocalDate expiry, Pageable page) {
+		
+		return (List<Order>) orderRepository.findOrderByExpiry(expiry, page.getPageSize(), (int) page.getOffset());
+	}
 	
-	// TODO public Order updateOrder(Order order, Long id)
+	public Order updateOrder(Order order, Long id) {
+
+		Optional<Order> oorder = orderRepository.findById(id);
+		order.setId(oorder.get().getId());
+		return orderRepository.save(order);
+	}
 
 }

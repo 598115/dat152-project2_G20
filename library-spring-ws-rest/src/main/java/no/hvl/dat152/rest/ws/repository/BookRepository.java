@@ -38,4 +38,7 @@ public interface BookRepository extends CrudRepository<Book, Long>, PagingAndSor
 	List<Book> findAllPaginate(@Param("limit") int limit, @Param("offset") int offset);
 	
 	List<Book> findByTitleContaining(String term);
+
+	@Query("SELECT b FROM Book b WHERE b.id = :id")
+	Book findBookById(@Param("id") Long id);
 }

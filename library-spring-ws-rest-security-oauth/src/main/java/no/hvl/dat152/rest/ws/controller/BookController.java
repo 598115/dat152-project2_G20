@@ -37,6 +37,66 @@ import no.hvl.dat152.rest.ws.service.BookService;
 @RequestMapping("/elibrary/api/v1")
 public class BookController {
 
-	// TODO authority annotation
+	@Autowired
+	private BookService bookService;
+	
+	@GetMapping("/books")
+	@PreAuthorize("hasAuthority('USER')")
+	public ResponseEntity<Object> getAllBooks(){
+		
+		List<Book> books = bookService.findAll();
+		
+		if(books.isEmpty())
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		
+		return new ResponseEntity<>(books, HttpStatus.OK);		
+	}
+	
+	@GetMapping("/books/{isbn}")
+	@PreAuthorize("hasAuthority('USER')")
+	public ResponseEntity<Object> getBook(@PathVariable("isbn") String isbn) throws BookNotFoundException{
+		
+		Book book = bookService.findByISBN(isbn);
+		
+		return new ResponseEntity<>(book, HttpStatus.OK);
+				
+	}
+	
+	@PostMapping("/books")
+	@PreAuthorize("hasAuthority('ADMIN')")
+	public ResponseEntity<Book> createBook(@RequestBody Book book){
+		
+		Book nbook = bookService.saveBook(book);
+		
+		return new ResponseEntity<>(nbook, HttpStatus.CREATED);
+	}
+
+	@DeleteMapping("/books/{isbn}")
+	@PreAuthorize("hasAuthority('ADMIN')")
+	public ResponseEntity<Book> deleteBook(@PathVariable("isbn") String isbn) {
+
+		bookService.deleteByISBN(isbn);
+		return new ResponseEntity<>(null, HttpStatus.OK);
+	}
+
+	@PutMapping("/books/{isbn}")
+	@PreAuthorize("hasAuthority('ADMIN')")
+	public ResponseEntity<Book> updateBook(@RequestBody Book book, @PathVariable("isbn") String isbn) {
+
+		Book ubook = bookService.updateBook(book);
+
+		if(ubook == null || !isbn.equals(book.getIsbn())) {
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(ubook, HttpStatus.OK);
+	}
+	
+	@GetMapping("/books/{isbn}/authors")
+	@PreAuthorize("hasAuthority('USER')")
+	public ResponseEntity<Object> getAuthorsOfBookByISBN (@PathVariable("isbn") String isbn) throws BookNotFoundException {
+
+		Set<Author> authors = bookService.findAuthorsOfBookByISBN(isbn);
+		return new ResponseEntity<>(authors, HttpStatus.OK);
+	}
 
 }

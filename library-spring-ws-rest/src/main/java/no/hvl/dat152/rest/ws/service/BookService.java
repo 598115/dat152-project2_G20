@@ -47,15 +47,51 @@ public class BookService {
 		
 		return book;
 	}
-	
-	// TODO public Book updateBook(Book book, String isbn)
-	
-	// TODO public List<Book> findAllPaginate(Pageable page)
-	
-	// TODO public Set<Author> findAuthorsOfBookByISBN(String isbn)
-	
-	// TODO public void deleteById(long id)
-	
-	// TODO public void deleteByISBN(String isbn) 
+
+	public Book updateBook(Book book) {
+		
+		Book ubook = null;
+		try{
+		  Book oldbook = findByISBN(book.getIsbn());
+		  if(oldbook != null) {
+			  ubook = bookRepository.save(book);
+		  }
+		  }
+		  catch(Exception e){
+			 e.printStackTrace();
+		  }
+		  return ubook;		
+	  }
+
+	  public void deleteByISBN(String isbn) {
+		
+		try{
+		Book dbook = findByISBN(isbn);
+		bookRepository.delete(dbook);
+		}
+		catch(Exception e){
+           e.printStackTrace();
+		}
+	}
+
+	  public List<Book> findAllPaginate(Pageable page) {
+		return findAllPaginate(page);
+	  }
+
+	  public Set<Author> findAuthorsOfBookByISBN(String isbn) throws BookNotFoundException {
+		Book book = findByISBN(isbn);
+        return book.getAuthors();
+	  }
+
+	  public void deleteById(long id) {
+		
+		try{
+			Book dbook = bookRepository.findBookById(id);
+			bookRepository.delete(dbook);
+			}
+			catch(Exception e){
+			   e.printStackTrace();
+			}
+	  }
 	
 }

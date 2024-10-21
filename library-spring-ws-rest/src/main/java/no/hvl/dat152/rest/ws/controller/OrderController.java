@@ -37,12 +37,38 @@ import no.hvl.dat152.rest.ws.service.OrderService;
 @RequestMapping("/elibrary/api/v1")
 public class OrderController {
 
-	// TODO - getAllBorrowOrders (@Mappings, URI=/orders, and method) + filter by expiry and paginate 
+	@Autowired
+	OrderService orderService;
+
+	@GetMapping("/orders")
+	public ResponseEntity<Object> getAllBorrowOrders(@RequestParam(value = "expiry", defaultValue = "9999-12-31") LocalDate expiry,
+	 @RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "size", defaultValue = "5") int size) {
+		
+		Pageable pageable = PageRequest.of(page, size);
+		
+		List<Order> orders = orderService.findByExpiryDate(expiry, pageable);
+		return new ResponseEntity<>(orders, HttpStatus.OK);
+	} 	
 	
-	// TODO - getBorrowOrder (@Mappings, URI=/orders/{id}, and method)
+	@GetMapping("/orders/{id}")
+	public ResponseEntity<Order> getBorrowOrder(@PathVariable("id") Long id) throws OrderNotFoundException {
+
+		Order order = orderService.findOrder(id);
+		return new ResponseEntity<>(order, HttpStatus.OK);
+	}
 	
-	// TODO - updateOrder (@Mappings, URI=/orders/{id}, and method)
+	@PutMapping("/orders/{id}")
+	public ResponseEntity<Order> updateOrder(@PathVariable("id") Long id, @RequestBody Order order) {
+
+		Order uorder = orderService.updateOrder(order, id);
+		return new ResponseEntity<>(uorder, HttpStatus.OK);
+	}	
 	
-	// TODO - deleteBookOrder (@Mappings, URI=/orders/{id}, and method)
+	@DeleteMapping("/orders/{id}")
+	public ResponseEntity<Order> deleteBookOrder(@PathVariable Long id) {
+
+		orderService.deleteOrder(id);
+		return new ResponseEntity<>(null, HttpStatus.OK);
+	}
 	
 }

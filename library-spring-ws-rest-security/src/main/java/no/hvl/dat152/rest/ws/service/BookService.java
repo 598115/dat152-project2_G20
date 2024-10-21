@@ -23,5 +23,74 @@ import no.hvl.dat152.rest.ws.repository.BookRepository;
 @Service
 public class BookService {
 	
-	// TODO copy your solutions from previous tasks!
+	@Autowired
+	private BookRepository bookRepository;
+	
+	
+	public Book saveBook(Book book) {
+		
+		return bookRepository.save(book);
+		
+	}
+	
+	public List<Book> findAll(){
+		
+		return (List<Book>) bookRepository.findAll();
+		
+	}
+	
+	
+	public Book findByISBN(String isbn) throws BookNotFoundException {
+		
+		Book book = bookRepository.findByIsbn(isbn)
+				.orElseThrow(() -> new BookNotFoundException("Book with isbn = "+isbn+" not found!"));
+		
+		return book;
+	}
+
+	public Book updateBook(Book book) {
+		
+		Book ubook = null;
+		try{
+		  Book oldbook = findByISBN(book.getIsbn());
+		  if(oldbook != null) {
+			  ubook = bookRepository.save(book);
+		  }
+		  }
+		  catch(Exception e){
+			 e.printStackTrace();
+		  }
+		  return ubook;		
+	  }
+
+	  public void deleteByISBN(String isbn) {
+		
+		try{
+		Book dbook = findByISBN(isbn);
+		bookRepository.delete(dbook);
+		}
+		catch(Exception e){
+           e.printStackTrace();
+		}
+	}
+
+	  public List<Book> findAllPaginate(Pageable page) {
+		return findAllPaginate(page);
+	  }
+
+	  public Set<Author> findAuthorsOfBookByISBN(String isbn) throws BookNotFoundException {
+		Book book = findByISBN(isbn);
+        return book.getAuthors();
+	  }
+
+	  public void deleteById(long id) {
+		
+		try{
+			Book dbook = bookRepository.findBookById(id);
+			bookRepository.delete(dbook);
+			}
+			catch(Exception e){
+			   e.printStackTrace();
+			}
+	  }
 }

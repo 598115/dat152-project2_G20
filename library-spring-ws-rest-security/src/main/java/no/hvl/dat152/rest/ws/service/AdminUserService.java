@@ -4,6 +4,9 @@
 package no.hvl.dat152.rest.ws.service;
 
 
+import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,10 +34,26 @@ public class AdminUserService {
 		
 		return user;
 	}
+
+	public User deleteUserRole(Long id, String role) {
+		role = role.toUpperCase();
+		Optional<User> data = userRepository.findById(id);
+		User user = data.get();
+		Set<Role> roles = user.getRoles();
+		roles.remove(roleRepository.findByName(role));
+		user.setRoles(roles);
+		return userRepository.save(user);
+	}
 	
-	// TODO public User deleteUserRole(Long id, String role)
-	
-	// TODO public User updateUserRole(Long id, String role)
+
+	public User updateUserRole(Long id, String role) {
+		Optional<User> data = userRepository.findById(id);
+		User user = data.get();
+		Set<Role> roles = user.getRoles();
+		roles.add(roleRepository.findByName(role));
+		user.setRoles(roles);
+		return userRepository.save(user);
+	}
 	
 	public User findUser(Long id) throws UserNotFoundException {
 		

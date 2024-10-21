@@ -29,24 +29,25 @@ public class AdminUserController {
 	@Autowired
 	private AdminUserService userService;
 	
+
+	@PreAuthorize("hasAuthority('SUPER_ADMIN')")
 	@PutMapping("/users/{id}")
-	// TODO authority annotation
-	public ResponseEntity<Object> updateUserRole(@PathVariable("id") Long id, @RequestParam("role") String role) 
+	public ResponseEntity<User> updateUserRole(@PathVariable("id") Long id, @RequestParam("role") String role) 
 			throws UserNotFoundException{
 		
-		// TODO
+		User user = userService.updateUserRole(id, role);
+		return new ResponseEntity<>(user, HttpStatus.OK);
 		
-		return null;
 	}
-	
+
+	@PreAuthorize("hasAuthority('SUPER_ADMIN')")
 	@DeleteMapping("/users/{id}")
-	// TODO authority annotation
-	public ResponseEntity<Object> deleteUserRole(@PathVariable("id") Long id, 
+	public ResponseEntity<User> deleteUserRole(@PathVariable("id") Long id, 
 			@RequestParam("role") String role) throws UserNotFoundException{
 		
-		// TODO
+		User user = userService.deleteUserRole(id, role);
 		
-		return null;
+		return new ResponseEntity<>(user, HttpStatus.OK);
 	}
 	
 }

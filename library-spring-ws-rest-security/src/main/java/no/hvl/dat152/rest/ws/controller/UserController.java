@@ -12,14 +12,18 @@ import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException.Unauthorized;
 
+import jakarta.el.ELException;
 import no.hvl.dat152.rest.ws.exceptions.OrderNotFoundException;
 import no.hvl.dat152.rest.ws.exceptions.UnauthorizedOrderActionException;
 import no.hvl.dat152.rest.ws.exceptions.UserNotFoundException;
@@ -34,6 +38,107 @@ import no.hvl.dat152.rest.ws.service.UserService;
 @RequestMapping("/elibrary/api/v1")
 public class UserController {
 
-	// TODO authority annotation
+
+	@Autowired
+	private UserService userService;
+	
+	@GetMapping("/users")
+	@PreAuthorize("hasAuthority('SUPER_ADMIN')")
+	public ResponseEntity<Object> getUsers(){
+		
+		List<User> users = userService.findAllUsers();
+		
+		if(users.isEmpty())
+			
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		else
+			return new ResponseEntity<>(users, HttpStatus.OK);
+	}
+	
+	@GetMapping("/users/{id}")
+	@PreAuthorize("hasAuthority('SUPER_ADMIN')")
+	public ResponseEntity<Object> getUser(@PathVariable("id") Long id) throws UserNotFoundException {
+		
+		User user = null;
+		try {
+			user = userService.findUser(id);
+		}
+		catch(UserNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); 
+		}
+		return new ResponseEntity<>(user, HttpStatus.OK);	
+	}
+
+    @PostMapping("/users")
+	@PreAuthorize("hasAuthority('USER')")
+	public ResponseEntity<User> createUser(@RequestBody User user) {
+		User nuser = userService.saveUser(user);
+		return new ResponseEntity<>(nuser, HttpStatus.CREATED);
+	}
+
+	
+	@PutMapping("/users/{id}")
+	@PreAuthorize("hasAuthority('SUPER_ADMIN')")
+	public ResponseEntity<User> updateUser(@RequestBody User user, @PathVariable("id") Long id) throws UserNotFoundException {
+         User uuser = userService.updateUser(user, id);
+		 return new ResponseEntity<>(uuser, HttpStatus.OK);
+	}
+
+	@DeleteMapping("/users/{id}")
+	@PreAuthorize("hasAuthority('SUPER_ADMIN')")
+	public ResponseEntity<User> deleteUser(@PathVariable("id") Long id) throws UserNotFoundException {
+
+		userService.deleteUser(id);
+		return new ResponseEntity<>(null, HttpStatus.OK);
+	}
+
+    @GetMapping("/users/{id}/orders")
+	@PreAuthorize("hasAuthority('USER')")
+	public ResponseEntity<Object> getUserOrders(@PathVariable("id") Long id) throws UserNotFoundException {
+
+		Set<Order> orders = userService.getUserOrders(id);
+		return new ResponseEntity<>(orders, HttpStatus.OK);
+	}
+
+	@GetMapping("/users/{uid}/orders/{oid}")
+	@PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<Order> getUserOrder(@PathVariable("uid") Long uid, @PathVariable("oid") Long oid) throws UserNotFoundException, OrderNotFoundException {
+           
+		Order order = userService.getUserOrder(uid, oid);
+        return new ResponseEntity<>(order, HttpStatus.OK);		
+	} 
+
+	@DeleteMapping("/users/{uid}/orders/{oid}")
+	@PreAuthorize("hasAuthority('USER')")
+	public ResponseEntity<Order> deleteUserOrder(@PathVariable("uid") Long uid, @PathVariable("oid") Long oid) throws UserNotFoundException, OrderNotFoundException {
+
+		userService.deleteOrderForUser(uid, oid);
+		return new ResponseEntity<>(null, HttpStatus.OK);
+	}
+	
+    @PostMapping("/users/{uid}/orders")
+	@PreAuthorize("hasAuthority('USER')")
+	public ResponseEntity<Object> createUserOrder(@PathVariable("uid") Long uid, @RequestBody Order order) throws UserNotFoundException, OrderNotFoundException {
+
+		User user = userService.createOrdersForUser(uid, order);
+		Set<Order> orders = user.getOrders();
+
+        addLinks(orders, uid);
+		
+		return new ResponseEntity<>(orders, HttpStatus.CREATED);
+	}
+
+	private void addLinks(Set<Order> orders, Long uid) throws UserNotFoundException, OrderNotFoundException {
+		for (Order order : orders) {
+			Link deleteLink = linkTo(methodOn(UserController.class).deleteUserOrder(uid, order.getId())).withRel("Delete_order");
+			Link getLink = linkTo(methodOn(UserController.class).getUserOrder(uid, order.getId())).withRel("Get_info_on_an_order");
+			Link getAllLink = linkTo(methodOn(UserController.class).getUserOrders(uid)).withRel("Get_info_on_all__orders");
+			Link updateLink = linkTo(methodOn(OrderController.class).updateOrder(order.getId(), order)).withRel("Update_order_info");
+			order.add(deleteLink);
+			order.add(getLink);
+			order.add(getAllLink);
+			order.add(updateLink);
+		}
+	}
 	
 }

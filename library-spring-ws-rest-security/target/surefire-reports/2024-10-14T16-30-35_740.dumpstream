@@ -1,0 +1,5 @@
+# Created at 2024-10-14T16:30:36.444
+Boot Manifest-JAR contains absolute paths in classpath 'F:\VSCODE-library\dat152-project2\library-spring-ws-rest-security\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+
